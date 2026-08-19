@@ -58,18 +58,24 @@ function formatDuration(seconds) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+// Helper: Extract clean HTTP/HTTPS URL from any input string (handles Share Sheet text)
+function extractUrl(input) {
+  if (!input || typeof input !== 'string') return null;
+  const match = input.match(/https?:\/\/[^\s"']+/);
+  return match ? match[0].trim() : null;
+}
+
 /**
  * API: Fetch Video Info / Metadata
  * POST /api/info
  * Body: { url: string }
  */
 app.post('/api/info', (req, res) => {
-  const { url } = req.body;
-  if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) {
+  const cleanUrl = extractUrl(req.body.url);
+  if (!cleanUrl) {
     return res.status(400).json({ error: 'Invalid URL. Please enter a valid link starting with http:// or https://' });
   }
 
-  const cleanUrl = url.trim();
   const platform = detectPlatform(cleanUrl);
 
   const args = [
@@ -118,12 +124,12 @@ app.post('/api/info', (req, res) => {
  * Body: { url: string, formatId: string }
  */
 app.post('/api/download', (req, res) => {
-  const { url, formatId } = req.body;
-  if (!url || !url.trim().startsWith('http')) {
+  const { formatId } = req.body;
+  const cleanUrl = extractUrl(req.body.url);
+  if (!cleanUrl) {
     return res.status(400).json({ error: 'Invalid URL provided.' });
   }
 
-  const cleanUrl = url.trim();
   const fileId = crypto.randomBytes(8).toString('hex');
   const isAudio = formatId === 'mp3';
   const ext = isAudio ? 'mp3' : 'mp4';
@@ -221,14 +227,14 @@ app.get('/api/file/:id', (req, res) => {
  * GET or POST /api/shortcut?url=...&format=mp4
  */
 app.all('/api/shortcut', (req, res) => {
-  const url = req.query.url || req.body.url;
+  const rawUrl = req.query.url || req.body.url;
   const format = req.query.format || req.body.format || 'mp4';
+  const cleanUrl = extractUrl(rawUrl);
 
-  if (!url || !url.trim().startsWith('http')) {
+  if (!cleanUrl) {
     return res.status(400).json({ error: 'Missing video URL' });
   }
 
-  const cleanUrl = url.trim();
   const fileId = crypto.randomBytes(6).toString('hex');
   const isAudio = format === 'mp3';
   const ext = isAudio ? 'mp3' : 'mp4';
