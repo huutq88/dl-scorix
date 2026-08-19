@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  social-downloader:
+    image: social-downloader:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: social-downloader
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    volumes:
+      - downloads_data:/app/downloads
+    networks:
+      - downloader-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  downloads_data:
+
+networks:
+  downloader-network:
+    driver: bridge
