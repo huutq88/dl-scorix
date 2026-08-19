@@ -20,7 +20,8 @@ echo "🏗️ Building new Docker image..."
 docker compose -p dl-scorix -f docker-compose.prod.yml build
 
 echo "🔄 Swapping to new container (atomic zero-downtime swap)..."
-docker compose -p dl-scorix -f docker-compose.prod.yml up -d
+docker rm -f social-downloader 2>/dev/null || true
+docker compose -p dl-scorix -f docker-compose.prod.yml up -d --force-recreate
 
 echo "====== 3. Pruning dangling Docker images ======"
 docker image prune -f
