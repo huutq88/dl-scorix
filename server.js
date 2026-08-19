@@ -129,20 +129,25 @@ app.post('/api/download', (req, res) => {
   const ext = isAudio ? 'mp3' : 'mp4';
   const outputPattern = path.join(DOWNLOADS_DIR, `${fileId}.%(ext)s`);
 
-  let formatArg = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best';
+  const isYouTube = cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be');
+
+  let formatArg = 'bestvideo+bestaudio/best';
   if (formatId === '1080p') {
-    formatArg = 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]/best';
+    formatArg = 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best';
   } else if (formatId === '720p') {
-    formatArg = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best';
+    formatArg = 'bestvideo[height<=720]+bestaudio/best[height<=720]/best';
   } else if (formatId === '480p') {
-    formatArg = 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480]/best';
+    formatArg = 'bestvideo[height<=480]+bestaudio/best[height<=480]/best';
   }
 
   const args = [
     '--no-playlist',
-    '--no-warnings',
-    '--extractor-args', 'youtube:player_client=android,web'
+    '--no-warnings'
   ];
+  if (isYouTube) {
+    args.push('--extractor-args', 'youtube:player_client=android,web');
+  }
+
   if (isAudio) {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
   } else {
@@ -229,15 +234,19 @@ app.all('/api/shortcut', (req, res) => {
   const ext = isAudio ? 'mp3' : 'mp4';
   const outputPath = path.join(DOWNLOADS_DIR, `shortcut_${fileId}.${ext}`);
 
+  const isYouTube = cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be');
   const args = [
     '--no-playlist',
-    '--no-warnings',
-    '--extractor-args', 'youtube:player_client=android,web'
+    '--no-warnings'
   ];
+  if (isYouTube) {
+    args.push('--extractor-args', 'youtube:player_client=android,web');
+  }
+
   if (isAudio) {
     args.push('-x', '--audio-format', 'mp3', '-o', outputPath, cleanUrl);
   } else {
-    args.push('-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', '--merge-output-format', 'mp4', '-o', outputPath, cleanUrl);
+    args.push('-f', 'bestvideo+bestaudio/best', '--merge-output-format', 'mp4', '-o', outputPath, cleanUrl);
   }
 
   const process = execFile(YTDLP_PATH, args);

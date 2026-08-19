@@ -130,13 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateProgress(100, 'Processing complete! Transferring file...');
 
-      // Trigger automatic file download in browser
-      const downloadLink = document.createElement('a');
-      downloadLink.href = data.downloadUrl + `&filename=${encodeURIComponent(currentVideoData.title)}.${data.ext}`;
-      downloadLink.download = `${currentVideoData.title}.${data.ext}`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+      // Trigger universal file download across mobile and desktop browsers
+      const targetUrl = data.downloadUrl + `&filename=${encodeURIComponent(currentVideoData.title)}.${data.ext}`;
+      window.location.href = targetUrl;
 
       setTimeout(() => {
         progressContainer.classList.add('hidden');
