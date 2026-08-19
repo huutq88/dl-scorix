@@ -1,57 +1,36 @@
 # Scorix DL - Professional iOS Shortcut Setup Guide
 
-Upgrade your iOS Shortcut with **Haptic Vibrations**, **Toast Notifications**, and **Auto Camera Roll Save** for a 100% professional experience!
+Automate video downloads from TikTok, Instagram, YouTube, and Facebook on your iPhone / iPad and save them directly to your **Photos / Camera Roll** without opening a browser!
 
 ---
 
-## ⚡ Professional 5-Step Shortcut Actions
+## ⚡ 1-Click Installation (Recommended)
 
-Create a Shortcut named **"Scorix DL"** in the iOS Shortcuts App with these 5 actions:
+Tap the official iCloud link below on your iPhone / iPad to automatically import the professional **Scorix DL** shortcut:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. [Show Notification]                                      │
-│    "🚀 Scorix DL: Downloading video..."                    │
-├─────────────────────────────────────────────────────────────┤
-│ 2. [Get Contents of URL]                                    │
-│    URL: https://dl-api.scorix.live/shortcut?url=[Shortcut Input] │
-│    Method: GET                                              │
-├─────────────────────────────────────────────────────────────┤
-│ 3. [Save to Photo Album]                                    │
-│    Save [Contents of URL] to Recents / Camera Roll          │
-├─────────────────────────────────────────────────────────────┤
-│ 4. [Vibrate Device] (Haptic Feedback)                       │
-│    Vibrate device on completion                             │
-├─────────────────────────────────────────────────────────────┤
-│ 5. [Show Notification]                                      │
-│    "✅ Scorix DL: Video saved to Photos!"                  │
-└─────────────────────────────────────────────────────────────┘
-```
+👉 **[https://www.icloud.com/shortcuts/99b04fd784414c968bb8499a8fb28c79](https://www.icloud.com/shortcuts/99b04fd784414c968bb8499a8fb28c79)**
 
 ---
 
-## 🛠️ Detailed Step-by-Step Instructions
+## 📲 How to Use
 
-1. Open the **Shortcuts (Phím tắt)** app on your iPhone.
-2. Tap **+** to create a new shortcut -> Name it **"Scorix DL"**.
-3. Tap **(i)** Info -> Enable **Show in Share Sheet** (Input types: URLs, Text, Web Pages).
-4. Add Action **Show Notification**:
-   - Title: `Scorix DL`
-   - Body: `🚀 Downloading video...`
-5. Add Action **Get Contents of URL**:
-   - URL: `https://dl-api.scorix.live/shortcut?url=[Shortcut Input]`
-6. Add Action **Save to Photo Album**:
-   - Input: `[Contents of URL]`
-   - Target: `Recents` or `Camera Roll`
-7. Add Action **Vibrate Device**:
-   - Provides instant haptic tactile feedback when download finishes.
-8. Add Action **Show Notification**:
-   - Title: `Scorix DL`
-   - Body: `✅ Saved to Photos!`
+1. Open **TikTok**, **Instagram**, or **YouTube** on your iPhone.
+2. Tap the **Share** button on any video or reel.
+3. Choose **Scorix DL** from the Share Sheet.
+4. A progress notification `"🚀 Scorix DL: Downloading video..."` will appear.
+5. Upon completion, your phone will give a subtle haptic vibration and display `"✅ Saved to Photos!"`.
 
 ---
 
-## 🎨 Customizing Icon & Branding
+## 🛠️ Step-by-Step Manual Setup (Alternative)
 
-- **Color**: Select **Cyan Blue** (`#00A0E9`).
-- **Icon / Glyph**: Select **Download Arrow** or **Lightning Bolt**.
+If you prefer to create the shortcut manually:
+
+1. Open the **Shortcuts** app on your iPhone.
+2. Create a new shortcut named **"Scorix DL"**.
+3. Enable **Show in Share Sheet**.
+4. Add Action **Show Notification**: `🚀 Scorix DL: Downloading video...`
+5. Add Action **Get Contents of URL**: `https://dl-api.scorix.live/shortcut?url=[Shortcut Input]`
+6. Add Action **Save to Photo Album**: Save to `Camera Roll / Recents`.
+7. Add Action **Vibrate Device**: (Haptic Feedback).
+8. Add Action **Show Notification**: `✅ Saved to Photos!`.
