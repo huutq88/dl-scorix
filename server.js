@@ -28,6 +28,8 @@ if (fs.existsSync('/opt/homebrew/bin/yt-dlp')) {
   YTDLP_PATH = '/opt/homebrew/bin/yt-dlp';
 }
 
+const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
 // Helper: Detect Social Platform from URL
 function detectPlatform(url) {
   const lowercaseUrl = url.toLowerCase();
@@ -82,11 +84,13 @@ app.post('/api/info', (req, res) => {
     '--dump-json',
     '--no-warnings',
     '--no-playlist',
+    '--user-agent', DEFAULT_USER_AGENT,
     cleanUrl
   ];
 
   execFile(YTDLP_PATH, args, { maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
     if (error) {
+      console.error('yt-dlp info error:', stderr || error.message);
       return res.status(500).json({
         error: 'Unable to fetch video details. Please verify the link or check if the video is private.'
       });
@@ -148,7 +152,8 @@ app.post('/api/download', (req, res) => {
 
   const args = [
     '--no-playlist',
-    '--no-warnings'
+    '--no-warnings',
+    '--user-agent', DEFAULT_USER_AGENT
   ];
   if (isYouTube) {
     args.push('--extractor-args', 'youtube:player_client=android,web');
@@ -157,7 +162,7 @@ app.post('/api/download', (req, res) => {
   if (isAudio) {
     args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
   } else {
-    args.push('-f', formatArg, '--merge-output-format', 'mp4');
+    args.push('-f', isYouTube ? formatArg : 'b/best', '--merge-output-format', 'mp4');
   }
   args.push('-o', outputPattern, cleanUrl);
 
@@ -227,12 +232,22 @@ app.get('/api/file/:id', (req, res) => {
  * GET or POST /api/shortcut?url=...&format=mp4
  */
 app.all('/api/shortcut', (req, res) => {
-  const rawUrl = req.query.url || req.body.url;
+  // Extract un-truncated URL from raw query string if url contains '&' or query params
+  let inputUrl = req.query.url || req.body.url;
+  if (req.originalUrl && req.originalUrl.includes('url=')) {
+    const rawQuery = req.originalUrl.substring(req.originalUrl.indexOf('url=') + 4);
+    try {
+      inputUrl = decodeURIComponent(rawQuery);
+    } catch (e) {
+      inputUrl = rawQuery;
+    }
+  }
+
   const format = req.query.format || req.body.format || 'mp4';
-  const cleanUrl = extractUrl(rawUrl);
+  const cleanUrl = extractUrl(inputUrl);
 
   if (!cleanUrl) {
-    return res.status(400).json({ error: 'Missing video URL' });
+    return res.status(400).json({ error: 'Missing or invalid video URL' });
   }
 
   const fileId = crypto.randomBytes(6).toString('hex');
@@ -243,27 +258,42 @@ app.all('/api/shortcut', (req, res) => {
   const isYouTube = cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be');
   const args = [
     '--no-playlist',
-    '--no-warnings'
+    '--no-warnings',
+    '--user-agent', DEFAULT_USER_AGENT
   ];
+
   if (isYouTube) {
     args.push('--extractor-args', 'youtube:player_client=android,web');
-  }
-
-  if (isAudio) {
-    args.push('-x', '--audio-format', 'mp3', '-o', outputPath, cleanUrl);
+    if (isAudio) {
+      args.push('-x', '--audio-format', 'mp3', '-o', outputPath, cleanUrl);
+    } else {
+      args.push('-f', 'bestvideo+bestaudio/best', '--merge-output-format', 'mp4', '-o', outputPath, cleanUrl);
+    }
   } else {
-    args.push('-f', 'bestvideo+bestaudio/best', '--merge-output-format', 'mp4', '-o', outputPath, cleanUrl);
+    // Non-YouTube (TikTok, Instagram, Facebook)
+    if (isAudio) {
+      args.push('-x', '--audio-format', 'mp3', '-o', outputPath, cleanUrl);
+    } else {
+      args.push('-f', 'b/best', '-o', outputPath, cleanUrl);
+    }
   }
 
   const process = execFile(YTDLP_PATH, args);
 
+  let processStderr = '';
+  process.stderr.on('data', (data) => { processStderr += data.toString(); });
+
   process.on('close', (code) => {
     if (code !== 0 || !fs.existsSync(outputPath)) {
+      console.error(`Shortcut download failed for URL: ${cleanUrl}, code: ${code}, stderr: ${processStderr}`);
       return res.status(500).json({ error: 'Shortcut download failed' });
     }
 
+    const stat = fs.statSync(outputPath);
+
     res.setHeader('Content-Disposition', `attachment; filename="SocialVideo_${fileId}.${ext}"`);
     res.setHeader('Content-Type', isAudio ? 'audio/mpeg' : 'video/mp4');
+    res.setHeader('Content-Length', stat.size);
 
     const stream = fs.createReadStream(outputPath);
     stream.pipe(res);
@@ -271,7 +301,7 @@ app.all('/api/shortcut', (req, res) => {
     stream.on('end', () => {
       setTimeout(() => {
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-      }, 10000);
+      }, 15000);
     });
   });
 });
