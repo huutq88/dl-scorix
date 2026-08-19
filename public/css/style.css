@@ -144,10 +144,12 @@ body {
   filter: drop-shadow(0 4px 12px rgba(0, 160, 233, 0.4));
 }
 
-.logo-icon-img img {
+.logo-icon-img img,
+.modal-icon-img img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 10px;
 }
 
 .logo-text {
@@ -620,16 +622,19 @@ body {
   margin-bottom: 16px;
 }
 
-.modal-icon {
+.modal-icon,
+.modal-icon-img {
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   color: #fff;
+  filter: drop-shadow(0 4px 12px rgba(0, 160, 233, 0.4));
 }
 
 .modal-header h2 {
