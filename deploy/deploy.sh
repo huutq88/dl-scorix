@@ -17,10 +17,10 @@ fi
 
 echo "====== 2. Building & Zero-Downtime Deploying ======"
 echo "🏗️ Building new Docker image..."
-docker compose -f docker-compose.prod.yml build
+docker compose -p dl-scorix -f docker-compose.prod.yml build
 
 echo "🔄 Swapping to new container (atomic zero-downtime swap)..."
-docker compose -f docker-compose.prod.yml up -d --remove-orphans
+docker compose -p dl-scorix -f docker-compose.prod.yml up -d
 
 echo "====== 3. Pruning dangling Docker images ======"
 docker image prune -f
