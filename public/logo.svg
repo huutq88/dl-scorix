@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1329"/>
+      <stop offset="100%" stop-color="#040814"/>
+    </linearGradient>
+    
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff"/>
+      <stop offset="100%" stop-color="#0080ff"/>
+    </linearGradient>
+
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff"/>
+      <stop offset="50%" stop-color="#00a0e9"/>
+      <stop offset="100%" stop-color="#0066cc"/>
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background squircle for iOS icon style -->
+  <rect x="16" y="16" width="480" height="480" rx="110" fill="url(#bgGrad)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="6"/>
+
+  <!-- Appota-style Dynamic Wing Sweeps -->
+  <g filter="url(#glow)">
+    <!-- Top Wing Sweep -->
+    <path d="M 120 140 C 200 90, 340 120, 390 200 C 310 170, 210 175, 140 220 Z" fill="url(#wingGrad)" opacity="0.95"/>
+    
+    <!-- Middle Wing Sweep -->
+    <path d="M 155 235 C 230 200, 310 215, 345 285 C 280 260, 200 265, 160 310 Z" fill="url(#wingGrad)" opacity="0.9"/>
+    
+    <!-- Bottom Wing Sweep -->
+    <path d="M 205 325 C 255 300, 305 315, 320 375 C 275 350, 230 365, 210 425 Z" fill="url(#wingGrad)" opacity="0.85"/>
+  </g>
+
+  <!-- Download Arrow Overlay -->
+  <g transform="translate(256, 275)" filter="url(#glow)">
+    <!-- Vertical Line -->
+    <rect x="-14" y="-80" width="28" height="100" rx="14" fill="#ffffff"/>
+    <!-- Arrow Head -->
+    <path d="M -45 10 L 0 55 L 45 10 L 25 10 L 0 35 L -25 10 Z" fill="#ffffff"/>
+    <!-- Tray Bottom -->
+    <rect x="-55" y="70" width="110" height="16" rx="8" fill="url(#cyanGrad)"/>
+  </g>
+</svg>
