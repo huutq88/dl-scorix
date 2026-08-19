@@ -9,7 +9,7 @@ services:
     container_name: social-downloader
     restart: always
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3005:3000"
     environment:
       - PORT=3000
       - NODE_ENV=production
