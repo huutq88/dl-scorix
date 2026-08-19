@@ -229,9 +229,9 @@ app.get('/api/file/:id', (req, res) => {
 
 /**
  * API: iOS Shortcut Endpoint
- * GET or POST /api/shortcut?url=...&format=mp4
+ * GET or POST /api/shortcut or /shortcut?url=...&format=mp4
  */
-app.all('/api/shortcut', (req, res) => {
+app.all(['/api/shortcut', '/shortcut'], (req, res) => {
   // Extract un-truncated URL from raw query string if url contains '&' or query params
   let inputUrl = req.query.url || req.body.url;
   if (req.originalUrl && req.originalUrl.includes('url=')) {
