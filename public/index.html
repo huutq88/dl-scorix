@@ -1,222 +1,587 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scorix DL - Social Media Video Downloader</title>
-  <meta name="description" content="Download HD videos without watermark from TikTok, Instagram Reels, YouTube Shorts, and Facebook. Fast, free, and supports iOS Shortcuts.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Scorix DL - Tải Video TikTok, Instagram, YouTube, Facebook Không Logo | iOS Shortcut</title>
+  <meta name="description" content="Tải video HD, 4K không logo/watermark từ TikTok, Instagram Reels, YouTube Shorts, Facebook và tách nhạc MP3 320kbps miễn phí. Hỗ trợ phím tắt iOS Shortcut lưu thẳng vào Album Ảnh.">
+  <meta name="keywords" content="tải video tiktok không logo, download video instagram reels, tải nhạc mp3 tiktok, ios shortcut download video, scorix dl">
+  
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Scorix DL - High Performance Social Media Video Downloader">
+  <meta property="og:description" content="Download No Watermark HD/4K videos & MP3 audio from TikTok, Instagram, YouTube, Facebook with 1-click iOS Shortcut support.">
+  <meta property="og:image" content="logo.png">
   
   <!-- Favicons -->
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   
-  <!-- Google Fonts: Outfit & Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans, Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
+  <!-- QRCode.js CDN for interactive QR code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Ambient background glow effects -->
-  <div class="glow-sphere sphere-1"></div>
-  <div class="glow-sphere sphere-2"></div>
-  <div class="glow-sphere sphere-3"></div>
+  <!-- Ambient Floating Background Lights -->
+  <div class="ambient-glow glow-orb-1"></div>
+  <div class="ambient-glow glow-orb-2"></div>
+  <div class="ambient-glow glow-orb-3"></div>
 
-  <div class="app-container">
+  <!-- Toast Notification Container -->
+  <div id="toast-stack" class="toast-stack"></div>
+
+  <div class="app-wrapper">
     <!-- Header Navbar -->
-    <header class="navbar">
-      <div class="logo">
-        <div class="logo-icon-img">
-          <img src="logo.png" alt="Scorix DL Logo" width="38" height="38" />
+    <header class="header-nav">
+      <a href="/" class="brand-logo">
+        <div class="brand-icon">
+          <img src="logo.png" alt="Scorix DL Logo" width="40" height="40" />
         </div>
-        <span class="logo-text">Scorix<span class="highlight">DL</span></span>
+        <span class="brand-title">Scorix<span class="gradient-text">DL</span><span class="badge-version">v2.5</span></span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="#downloader" class="nav-link nav-desktop-only" data-i18n="nav_downloader"><i class="fa-solid fa-bolt"></i> Tải Video</a>
+        <a href="#features" class="nav-link nav-desktop-only" data-i18n="nav_features"><i class="fa-solid fa-star"></i> Tính Năng</a>
+        <a href="#guides" class="nav-link nav-desktop-only" data-i18n="nav_guides"><i class="fa-solid fa-book-open"></i> Hướng Dẫn</a>
+        <a href="#faq" class="nav-link nav-desktop-only" data-i18n="nav_faq"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+
+        <!-- iOS Shortcut Trigger Button -->
+        <button id="btn-open-shortcut-modal" class="btn-nav-shortcut">
+          <i class="fa-brands fa-apple"></i>
+          <span data-i18n="nav_ios_shortcut">iOS Shortcut</span>
+        </button>
+
+        <!-- Language Switcher -->
+        <div class="lang-toggle" title="Change Language / Đổi ngôn ngữ">
+          <button id="lang-vi" class="lang-btn active">🇻🇳 VI</button>
+          <button id="lang-en" class="lang-btn">🇺🇸 EN</button>
+        </div>
       </div>
-      <nav class="nav-links">
-        <a href="#downloader" class="nav-item nav-item-desktop active"><i class="fa-solid fa-bolt"></i> Downloader</a>
-        <a href="#ios-shortcut" class="nav-item nav-item-shortcut" id="open-shortcut-modal"><i class="fa-solid fa-mobile-screen-button"></i> iOS Shortcut</a>
-        <a href="#features" class="nav-item nav-item-desktop"><i class="fa-solid fa-star"></i> Features</a>
-      </nav>
     </header>
 
-    <!-- Main Hero Section -->
-    <main class="hero-section" id="downloader">
-      <div class="badge-pill">
-        <span class="pulse-dot"></span> Fast Downloads • Auto Detection • No Watermark
+    <!-- Main Hero Downloader Section -->
+    <main class="hero-container" id="downloader">
+      <div class="hero-pill-badge">
+        <span class="pulsing-dot"></span>
+        <span data-i18n="hero_badge">⚡ Tải Tốc Độ Cao • Không Logo Watermark • 1-Click iOS Shortcut</span>
       </div>
 
-      <h1 class="hero-title">
-        Download Videos from <span class="gradient-text">TikTok, Instagram, YouTube & Facebook</span>
+      <h1 class="hero-main-title">
+        <span data-i18n="hero_title_prefix">Tải Video Chất Lượng Cao Từ</span><br>
+        <span class="shimmer-text">TikTok, Instagram, YouTube & Facebook</span>
       </h1>
-      <p class="hero-subtitle">
-        Paste any social media link to grab Full HD, 4K videos or MP3 audio in seconds.
+      
+      <p class="hero-sub-description" data-i18n="hero_subtitle">
+        Dán link bất kỳ từ mạng xã hội để tải video Full HD, 4K không dính logo watermark hoặc tách nhạc MP3 320kbps siêu tốc.
       </p>
 
       <!-- Supported Platforms Bar -->
-      <div class="platforms-bar">
-        <div class="platform-chip tiktok"><i class="fa-brands fa-tiktok"></i> TikTok</div>
-        <div class="platform-chip instagram"><i class="fa-brands fa-instagram"></i> Instagram</div>
-        <div class="platform-chip youtube"><i class="fa-brands fa-youtube"></i> YouTube</div>
-        <div class="platform-chip facebook"><i class="fa-brands fa-facebook"></i> Facebook</div>
+      <div class="platform-chips-row">
+        <div class="platform-pill tiktok" id="chip-tiktok"><i class="fa-brands fa-tiktok"></i> TikTok</div>
+        <div class="platform-pill instagram" id="chip-instagram"><i class="fa-brands fa-instagram"></i> Instagram</div>
+        <div class="platform-pill youtube" id="chip-youtube"><i class="fa-brands fa-youtube"></i> YouTube</div>
+        <div class="platform-pill facebook" id="chip-facebook"><i class="fa-brands fa-facebook"></i> Facebook</div>
+        <div class="platform-pill twitter" id="chip-twitter"><i class="fa-brands fa-x-twitter"></i> Twitter/X</div>
+        <div class="platform-pill threads" id="chip-threads"><i class="fa-brands fa-threads"></i> Threads</div>
       </div>
 
       <!-- Main Input Box Card -->
-      <div class="input-card glass-panel">
+      <section class="downloader-card glass-card">
         <form id="download-form" autocomplete="off">
-          <div class="input-group">
-            <div class="input-icon"><i class="fa-solid fa-link"></i></div>
+          <div class="input-box-wrapper">
+            <div class="input-lead-icon">
+              <i class="fa-solid fa-link"></i>
+            </div>
+            
             <input 
               type="text" 
               id="video-url" 
-              placeholder="Paste video URL from TikTok, Instagram, YouTube, Facebook..." 
+              class="main-url-input"
+              placeholder="Dán link video từ TikTok, Reels, YouTube Shorts, Facebook..." 
               required
             />
-            <button type="button" id="btn-paste" class="btn-secondary" title="Paste from clipboard">
-              <i class="fa-regular fa-clipboard"></i> Paste Link
-            </button>
-            <button type="submit" id="btn-fetch" class="btn-primary">
-              <span class="btn-text"><i class="fa-solid fa-magnifying-glass"></i> Analyze</span>
-              <span class="spinner hidden"></span>
-            </button>
+            
+            <div class="input-actions-group">
+              <button type="button" id="btn-clear-input" class="btn-icon-clear hidden" title="Xóa nội dung">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+              <button type="button" id="btn-paste-clipboard" class="btn-action-paste">
+                <i class="fa-regular fa-clipboard"></i>
+                <span data-i18n="btn_paste">Dán Link</span>
+              </button>
+              <button type="submit" id="btn-fetch-video" class="btn-action-fetch">
+                <span class="btn-content-label"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="btn_analyze">Phân Tích</span></span>
+                <span class="spinner-icon hidden"></span>
+              </button>
+            </div>
           </div>
         </form>
-        <div id="error-message" class="error-toast hidden"></div>
-      </div>
+
+        <!-- Quick Sample Links -->
+        <div class="sample-links-bar">
+          <span class="sample-label" data-i18n="sample_label"><i class="fa-regular fa-lightbulb"></i> Thử mẫu:</span>
+          <button type="button" class="sample-chip" data-url="https://www.tiktok.com/@tiktok/video/7016541603504852230">
+            <i class="fa-brands fa-tiktok"></i> TikTok Mẫu
+          </button>
+          <button type="button" class="sample-chip" data-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+            <i class="fa-brands fa-youtube"></i> YouTube Shorts / Video
+          </button>
+          <button type="button" class="sample-chip" data-url="https://www.instagram.com/reel/C8q8Qc_pT9q/">
+            <i class="fa-brands fa-instagram"></i> Instagram Reel
+          </button>
+        </div>
+
+        <!-- Alert / Error Toast -->
+        <div id="error-message-box" class="alert-toast-container hidden">
+          <div class="alert-toast">
+            <div><i class="fa-solid fa-triangle-exclamation"></i> <span id="error-text-content">Đã có lỗi xảy ra.</span></div>
+            <button type="button" class="btn-toast-close" id="btn-close-error">&times;</button>
+          </div>
+        </div>
+      </section>
 
       <!-- Video Preview Card (Hidden by default) -->
-      <div id="preview-card" class="preview-card glass-panel hidden">
-        <div class="preview-content">
-          <div class="thumbnail-wrapper">
-            <img id="preview-thumb" src="" alt="Thumbnail" />
-            <div id="platform-badge" class="platform-badge"><i class="fa-solid fa-video"></i> Social Media</div>
-            <span id="preview-duration" class="duration-badge">00:00</span>
+      <section id="preview-card" class="preview-result-card glass-card hidden">
+        <div class="preview-grid-layout">
+          <!-- Thumbnail & Badges -->
+          <div class="preview-thumb-col">
+            <img id="preview-thumb" class="preview-thumbnail-img" src="" alt="Video Thumbnail" />
+            <div id="platform-badge" class="platform-tag-badge">
+              <i class="fa-solid fa-video"></i> <span id="platform-badge-name">Social Media</span>
+            </div>
+            <span id="preview-duration" class="duration-tag-badge">00:00</span>
           </div>
-          <div class="details-wrapper">
-            <h2 id="preview-title" class="video-title">Video Title</h2>
-            <div class="meta-row">
-              <span class="meta-item"><i class="fa-regular fa-user"></i> <span id="preview-uploader">Author</span></span>
+
+          <!-- Video Info & Formats -->
+          <div class="preview-info-col">
+            <h2 id="preview-title" class="video-headline">Video Title</h2>
+            
+            <div class="video-author-row">
+              <span class="author-chip">
+                <i class="fa-solid fa-circle-user"></i>
+                <span id="preview-uploader">Tác giả</span>
+              </span>
+              <span class="badge-status" style="color: var(--accent-emerald); font-weight: 700;">
+                <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ready">Sẵn sàng tải xuống</span>
+              </span>
             </div>
 
-            <!-- Format & Resolution Options -->
-            <div class="options-group">
-              <label for="format-select" class="options-label"><i class="fa-solid fa-sliders"></i> Select Format & Quality:</label>
-              <select id="format-select" class="custom-select">
-                <option value="best">MP4 - Best Quality (HD/4K)</option>
-                <option value="1080p">MP4 - Full HD (1080p)</option>
-                <option value="720p">MP4 - HD (720p)</option>
-                <option value="mp3">MP3 - Audio Only (320kbps)</option>
-              </select>
+            <!-- Format & Quality Selector -->
+            <div class="format-selection-section">
+              <div class="format-heading-label">
+                <span><i class="fa-solid fa-sliders"></i> <span data-i18n="format_select_title">Chọn Định Dạng & Chất Lượng:</span></span>
+                <span style="font-size: 11px; color: var(--accent-cyan);" data-i18n="format_no_watermark">Không logo 100%</span>
+              </div>
+
+              <div id="format-options-container" class="format-grid-options">
+                <!-- Dynamically injected via JS -->
+              </div>
             </div>
 
-            <!-- Action Download Button -->
-            <button id="btn-download-start" class="btn-download-action">
-              <i class="fa-solid fa-download"></i> Download Video
+            <!-- Main Download Action Button -->
+            <button type="button" id="btn-start-download" class="btn-trigger-download">
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span id="download-btn-text" data-i18n="btn_download_video">Tải Video Ngay</span>
             </button>
 
             <!-- Download Progress Overlay -->
-            <div id="progress-container" class="progress-container hidden">
-              <div class="progress-status">
-                <span id="progress-text">Preparing video download...</span>
-                <span id="progress-percent">0%</span>
+            <div id="download-progress-box" class="download-progress-box hidden">
+              <div class="progress-header-status">
+                <span id="progress-status-text" data-i18n="progress_preparing">Đang kết nối luồng máy chủ tốc độ cao...</span>
+                <span id="progress-percent-number" class="progress-percent-label">0%</span>
               </div>
-              <div class="progress-bar-bg">
-                <div id="progress-bar-fill" class="progress-bar-fill"></div>
+              <div class="progress-track-bg">
+                <div id="progress-track-fill" class="progress-track-bar"></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Features Highlights Grid -->
-      <section class="features-grid" id="features">
-        <div class="feature-card glass-panel">
-          <div class="feature-icon glow-cyan"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-          <h3>No Watermark</h3>
-          <p>Download clean TikTok & Instagram Reels without annoying logos or watermarks.</p>
+      <!-- Recent Downloads History Section -->
+      <section id="history-section" class="history-section hidden">
+        <div class="section-header-row">
+          <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="history_title">Lịch Sử Tải Gần Đây</span></h3>
+          <button type="button" id="btn-clear-all-history" class="btn-clear-history">
+            <i class="fa-regular fa-trash-can"></i> <span data-i18n="history_clear">Xóa lịch sử</span>
+          </button>
         </div>
-        <div class="feature-card glass-panel">
-          <div class="feature-icon glow-purple"><i class="fa-solid fa-gauge-high"></i></div>
-          <h3>Ultra Fast Speed</h3>
-          <p>Engineered for high-speed concurrent downloads and zero delay processing.</p>
+        <div id="history-cards-list" class="history-cards-grid">
+          <!-- Populated by JavaScript -->
         </div>
-        <div class="feature-card glass-panel">
-          <div class="feature-icon glow-red"><i class="fa-solid fa-music"></i></div>
-          <h3>MP3 Converter</h3>
-          <p>Extract crystal clear 320kbps audio tracks from any social media video.</p>
+      </section>
+
+      <!-- iOS Shortcut Feature Showcase Banner -->
+      <section class="shortcut-showcase-section" id="ios-shortcut">
+        <div class="shortcut-showcase-card glass-card">
+          <div class="shortcut-grid-banner">
+            <div class="shortcut-banner-info">
+              <div class="hero-pill-badge" style="margin-bottom: 14px;">
+                <i class="fa-brands fa-apple"></i>
+                <span data-i18n="shortcut_banner_badge">Dành Riêng Cho iPhone & iPad</span>
+              </div>
+              
+              <h2 data-i18n="shortcut_banner_title">Tải Video 1-Chạm Bằng iOS Shortcut</h2>
+              <p data-i18n="shortcut_banner_desc">
+                Không cần mở trình duyệt! Chỉ cần bấm nút <strong>Chia sẻ (Share)</strong> trên TikTok, Instagram, YouTube và chọn <strong>Scorix DL</strong> — Video sẽ tự động lưu ngay vào <strong>Album Ảnh (Photos / Camera Roll)</strong>.
+              </p>
+
+              <!-- 3-Step Flow Cards -->
+              <div class="shortcut-steps-flow">
+                <div class="shortcut-step-box">
+                  <div class="step-circle-icon"><i class="fa-solid fa-share-nodes"></i></div>
+                  <h4 data-i18n="step1_title">1. Bấm Chia sẻ</h4>
+                  <p data-i18n="step1_desc">Trên video TikTok / Reels / YouTube</p>
+                </div>
+                <div class="shortcut-step-box">
+                  <div class="step-circle-icon"><i class="fa-solid fa-bolt"></i></div>
+                  <h4 data-i18n="step2_title">2. Chọn Scorix DL</h4>
+                  <p data-i18n="step2_desc">Từ menu bảng Share Sheet iOS</p>
+                </div>
+                <div class="shortcut-step-box">
+                  <div class="step-circle-icon"><i class="fa-regular fa-images"></i></div>
+                  <h4 data-i18n="step3_title">3. Lưu Vào Ảnh</h4>
+                  <p data-i18n="step3_desc">Tự động tải Full HD không logo</p>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="shortcut-action-btns">
+                <a href="https://www.icloud.com/shortcuts/99b04fd784414c968bb8499a8fb28c79" target="_blank" class="btn-icloud-shortcut">
+                  <i class="fa-brands fa-apple"></i>
+                  <span data-i18n="btn_get_shortcut">Cài Đặt Shortcut 1-Click</span>
+                </a>
+                <button type="button" id="btn-show-qr-modal" class="btn-open-qr">
+                  <i class="fa-solid fa-qrcode"></i>
+                  <span data-i18n="btn_scan_qr">Quét Mã QR</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Phone Graphic Mockup -->
+            <div class="phone-mockup-wrap">
+              <div class="phone-mockup-frame">
+                <div class="mockup-notch"></div>
+                <div class="mockup-screen-content">
+                  <div class="brand-icon" style="width: 50px; height: 50px; margin-bottom: 8px;">
+                    <img src="logo.png" alt="Logo" />
+                  </div>
+                  <div class="mockup-shortcut-card">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Scorix DL</span>
+                  </div>
+                  <div class="mockup-status-pill">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Saved to Photos!</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="feature-card glass-panel">
-          <div class="feature-icon glow-gold"><i class="fa-solid fa-mobile-screen"></i></div>
-          <h3>iOS Shortcut Ready</h3>
-          <p>Save videos directly into your iPhone Camera Roll via the iOS Share Sheet.</p>
+      </section>
+
+      <!-- Platform Guides Section -->
+      <section class="guides-section" id="guides">
+        <div class="section-header-row">
+          <h3 class="section-title"><i class="fa-solid fa-book-open"></i> <span data-i18n="guides_title">Hướng Dẫn Tải Video Từng Nền Tảng</span></h3>
+        </div>
+
+        <div class="guide-tabs-nav">
+          <button type="button" class="guide-tab-btn active" data-tab="guide-tiktok">
+            <i class="fa-brands fa-tiktok"></i> TikTok
+          </button>
+          <button type="button" class="guide-tab-btn" data-tab="guide-instagram">
+            <i class="fa-brands fa-instagram"></i> Instagram
+          </button>
+          <button type="button" class="guide-tab-btn" data-tab="guide-youtube">
+            <i class="fa-brands fa-youtube"></i> YouTube
+          </button>
+          <button type="button" class="guide-tab-btn" data-tab="guide-facebook">
+            <i class="fa-brands fa-facebook"></i> Facebook
+          </button>
+        </div>
+
+        <!-- TikTok Guide -->
+        <div id="guide-tiktok" class="guide-tab-pane glass-card active">
+          <div class="guide-steps-list">
+            <div class="guide-step-row">
+              <div class="guide-step-index">1</div>
+              <div class="guide-step-content" data-i18n="guide_tiktok_step1">
+                Mở ứng dụng <strong>TikTok</strong>, tìm video hoặc bài hát bạn muốn tải xuống.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">2</div>
+              <div class="guide-step-content" data-i18n="guide_tiktok_step2">
+                Nhấn nút <strong>Chia sẻ (Share)</strong> ở góc phải video và chọn <strong>Sao chép liên kết (Copy Link)</strong>.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">3</div>
+              <div class="guide-step-content" data-i18n="guide_tiktok_step3">
+                Dán link vào ô tải ở trên hoặc dùng phím tắt <strong>Scorix DL</strong> trên iPhone để lưu trực tiếp không dính logo watermark.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instagram Guide -->
+        <div id="guide-instagram" class="guide-tab-pane glass-card">
+          <div class="guide-steps-list">
+            <div class="guide-step-row">
+              <div class="guide-step-index">1</div>
+              <div class="guide-step-content" data-i18n="guide_insta_step1">
+                Mở <strong>Instagram</strong> và chọn video Reel hoặc bài viết cần tải.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">2</div>
+              <div class="guide-step-content" data-i18n="guide_insta_step2">
+                Bấm vào biểu tượng <strong>Chia sẻ (Máy bay giấy)</strong> và chọn <strong>Sao chép liên kết</strong>.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">3</div>
+              <div class="guide-step-content" data-i18n="guide_insta_step3">
+                Dán link vào Scorix DL để tải về định dạng MP4 độ phân giải cao nhất.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- YouTube Guide -->
+        <div id="guide-youtube" class="guide-tab-pane glass-card">
+          <div class="guide-steps-list">
+            <div class="guide-step-row">
+              <div class="guide-step-index">1</div>
+              <div class="guide-step-content" data-i18n="guide_yt_step1">
+                Mở video <strong>YouTube</strong> hoặc <strong>YouTube Shorts</strong> bạn yêu thích.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">2</div>
+              <div class="guide-step-content" data-i18n="guide_yt_step2">
+                Nhấn <strong>Chia sẻ</strong> -> <strong>Sao chép đường dẫn</strong>.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">3</div>
+              <div class="guide-step-content" data-i18n="guide_yt_step3">
+                Dán vào thanh công cụ của Scorix DL, chọn chất lượng Full HD 1080p hoặc định dạng MP3 320kbps.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Facebook Guide -->
+        <div id="guide-facebook" class="guide-tab-pane glass-card">
+          <div class="guide-steps-list">
+            <div class="guide-step-row">
+              <div class="guide-step-index">1</div>
+              <div class="guide-step-content" data-i18n="guide_fb_step1">
+                Trên video hoặc Reel <strong>Facebook</strong>, bấm nút <strong>Chia sẻ</strong>.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">2</div>
+              <div class="guide-step-content" data-i18n="guide_fb_step2">
+                Chọn <strong>Tùy chọn khác</strong> -> <strong>Sao chép liên kết</strong>.
+              </div>
+            </div>
+            <div class="guide-step-row">
+              <div class="guide-step-index">3</div>
+              <div class="guide-step-content" data-i18n="guide_fb_step3">
+                Dán link vào trang web để hệ thống trích xuất video chất lượng cao nhất.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Key Features Highlights Grid -->
+      <section class="features-section" id="features">
+        <div class="section-header-row">
+          <h3 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="features_title">Tại Sao Nên Chọn Scorix DL?</span></h3>
+        </div>
+
+        <div class="features-grid-layout">
+          <div class="feature-glass-card glass-card">
+            <div class="feature-icon-bubble glow-bubble-cyan">
+              <i class="fa-solid fa-droplet-slash"></i>
+            </div>
+            <h3 data-i18n="feat_nowatermark_title">Không Logo / Watermark</h3>
+            <p data-i18n="feat_nowatermark_desc">Tải video TikTok, Douyin và Instagram Reels sạch 100%, không bị chèn watermark hay logo ID tác giả.</p>
+          </div>
+
+          <div class="feature-glass-card glass-card">
+            <div class="feature-icon-bubble glow-bubble-purple">
+              <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <h3 data-i18n="feat_speed_title">Tốc Độ Băng Thông Cao</h3>
+            <p data-i18n="feat_speed_desc">Hệ thống máy chủ xử lý đa luồng giúp tối ưu hóa thời gian xử lý và tải xuống chỉ trong vài giây.</p>
+          </div>
+
+          <div class="feature-glass-card glass-card">
+            <div class="feature-icon-bubble glow-bubble-rose">
+              <i class="fa-solid fa-music"></i>
+            </div>
+            <h3 data-i18n="feat_mp3_title">Tách Âm Thanh MP3 320kbps</h3>
+            <p data-i18n="feat_mp3_desc">Trích xuất nhạc nền, podcast và hiệu ứng âm thanh từ mọi video với chất lượng âm thanh gốc cao nhất.</p>
+          </div>
+
+          <div class="feature-glass-card glass-card">
+            <div class="feature-icon-bubble glow-bubble-emerald">
+              <i class="fa-brands fa-apple"></i>
+            </div>
+            <h3 data-i18n="feat_ios_title">Tương Thích iOS Shortcut</h3>
+            <p data-i18n="feat_ios_desc">Tích hợp phím tắt Apple Shortcuts độc quyền, lưu video thẳng vào Cuộn Camera không cần qua trình duyệt.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Frequently Asked Questions (FAQ) -->
+      <section class="faq-section" id="faq">
+        <div class="section-header-row">
+          <h3 class="section-title"><i class="fa-solid fa-circle-question"></i> <span data-i18n="faq_title">Câu Hỏi Thường Gặp (FAQ)</span></h3>
+        </div>
+
+        <div class="faq-list">
+          <div class="faq-item">
+            <button type="button" class="faq-question-btn">
+              <span data-i18n="faq_q1">1. Dịch vụ Scorix DL có miễn phí không?</span>
+              <i class="fa-solid fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer" data-i18n="faq_a1">
+              Hoàn toàn miễn phí 100%! Bạn có thể tải bao nhiêu video tùy thích mà không bị giới hạn số lượng và không phải trả bất kỳ chi phí nào.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question-btn">
+              <span data-i18n="faq_q2">2. Video tải về được lưu ở đâu trên điện thoại?</span>
+              <i class="fa-solid fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer" data-i18n="faq_a2">
+              Nếu dùng trên trình duyệt web, video sẽ lưu vào thư mục <strong>Tải về (Downloads)</strong> hoặc <strong>Tệp (Files)</strong>. Nếu dùng phím tắt <strong>iOS Shortcut Scorix DL</strong>, video sẽ tự động lưu thẳng vào <strong>Album Ảnh (Photos / Camera Roll)</strong> của bạn.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question-btn">
+              <span data-i18n="faq_q3">3. Scorix DL có lưu trữ video của người dùng không?</span>
+              <i class="fa-solid fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer" data-i18n="faq_a3">
+              Không. Chúng tôi không lưu trữ bất kỳ video hoặc dữ liệu cá nhân nào trên máy chủ. Mọi file tạm sau khi xử lý tải xuống đều tự động xóa sau 30 phút.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question-btn">
+              <span data-i18n="faq_q4">4. Phím tắt iOS Shortcut hỗ trợ các phiên bản iOS nào?</span>
+              <i class="fa-solid fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer" data-i18n="faq_a4">
+              Phím tắt Scorix DL hoạt động hoàn hảo trên mọi thiết bị iPhone, iPad chạy từ iOS 15, iOS 16, iOS 17 đến iOS 18 trở lên.
+            </div>
+          </div>
         </div>
       </section>
     </main>
 
-    <!-- iOS Shortcut Instructions Modal / Section -->
-    <section class="shortcut-modal-overlay hidden" id="shortcut-modal">
-      <div class="shortcut-modal glass-panel">
-        <button class="close-modal" id="close-shortcut-modal">&times;</button>
-        <div class="modal-header">
-          <div class="modal-icon-img">
-            <img src="logo.png" alt="Scorix DL Logo" width="40" height="40" />
+    <!-- Modal: iOS Shortcut Setup Guide -->
+    <div id="shortcut-modal-overlay" class="modal-backdrop hidden">
+      <div class="modal-dialog glass-card">
+        <button type="button" class="btn-close-modal" id="btn-close-shortcut-modal">&times;</button>
+        
+        <div class="modal-header-block">
+          <div class="modal-brand-badge">
+            <img src="logo.png" alt="Logo" />
           </div>
-          <h2>iOS Shortcut Setup Guide</h2>
+          <div>
+            <h2 data-i18n="modal_shortcut_title">Cài Đặt iOS Shortcut Scorix DL</h2>
+            <p style="font-size: 13px; color: var(--accent-cyan); font-weight: 600;" data-i18n="modal_shortcut_subtitle">Lưu video vào Photos chỉ với 1 chạm</p>
+          </div>
         </div>
-        <div class="modal-body">
-          <p class="modal-desc">Download videos directly inside TikTok, Instagram, or YouTube on your iPhone with 1-click installation!</p>
-          
-          <!-- 1-Click Install Button -->
-          <div class="shortcut-install-box">
-            <a href="https://www.icloud.com/shortcuts/99b04fd784414c968bb8499a8fb28c79" target="_blank" class="btn-primary btn-shortcut-direct">
-              <i class="fa-solid fa-bolt"></i> Get Shortcut
-            </a>
-            <p class="install-hint">Tap above to automatically import into Apple Shortcuts on your iPhone / iPad.</p>
-          </div>
 
-          <div class="divider"><span>OR MANUAL SETUP</span></div>
+        <p class="modal-intro-text" data-i18n="modal_shortcut_intro">
+          Nhấn nút bên dưới để tự động nhập phím tắt vào ứng dụng <strong>Phím tắt (Apple Shortcuts)</strong> trên iPhone hoặc iPad của bạn:
+        </p>
 
-          <div class="steps-list">
-            <div class="step-item">
-              <div class="step-num">1</div>
-              <div class="step-text">
-                <strong>Show Notification:</strong> <code>🚀 Scorix DL: Downloading video...</code>
-              </div>
-            </div>
-            <div class="step-item">
-              <div class="step-num">2</div>
-              <div class="step-text">
-                <strong>Get Contents of URL:</strong><br>
-                <code>https://dl-api.scorix.live/shortcut?url=[Shortcut Input]</code>
-              </div>
-            </div>
-            <div class="step-item">
-              <div class="step-num">3</div>
-              <div class="step-text">
-                <strong>Save to Photo Album:</strong> Save <code>[Contents of URL]</code> to Camera Roll.
-              </div>
-            </div>
-            <div class="step-item">
-              <div class="step-num">4</div>
-              <div class="step-text">
-                <strong>Vibrate Device:</strong> Add haptic feedback on completion.
-              </div>
-            </div>
-            <div class="step-item">
-              <div class="step-num">5</div>
-              <div class="step-text">
-                <strong>Show Notification:</strong> <code>✅ Saved to Photos!</code>
-              </div>
-            </div>
+        <div class="modal-install-highlight">
+          <a href="https://www.icloud.com/shortcuts/99b04fd784414c968bb8499a8fb28c79" target="_blank" class="modal-btn-install">
+            <i class="fa-solid fa-bolt"></i>
+            <span data-i18n="btn_import_icloud">Nhận Phím Tắt (iCloud Official)</span>
+          </a>
+          <p class="modal-install-note" data-i18n="modal_icloud_note">Link chính thức từ Apple iCloud • Tự động cập nhật phiên bản mới</p>
+        </div>
+
+        <div class="modal-divider-row">
+          <span data-i18n="modal_or_api">HOẶC DÙNG API / FILE CẤU HÌNH</span>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 13px; font-weight: 700; color: var(--text-secondary);" data-i18n="label_api_endpoint">API Endpoint Cho Lập Trình Viên / Shortcut:</label>
+          <div class="api-copy-block">
+            <code id="api-endpoint-text">https://dl-api.scorix.live/shortcut?url=[LINK]</code>
+            <button type="button" id="btn-copy-api" class="btn-copy-code" data-i18n="btn_copy">Sao Chép</button>
           </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="/Scorix_DL.shortcut" download class="footer-link" style="font-size: 13px;">
+            <i class="fa-solid fa-download"></i> <span data-i18n="btn_download_shortcut_file">Tải trực tiếp file .shortcut</span>
+          </a>
         </div>
       </div>
-    </section>
+    </div>
 
-    <footer class="footer">
-      <p>© 2026 Scorix DL • High Performance Social Downloader</p>
+    <!-- Modal: QR Code for Mobile Install -->
+    <div id="qr-modal-overlay" class="modal-backdrop hidden">
+      <div class="modal-dialog glass-card" style="max-width: 440px;">
+        <button type="button" class="btn-close-modal" id="btn-close-qr-modal">&times;</button>
+        
+        <div class="modal-header-block" style="justify-content: center; text-align: center;">
+          <h2><i class="fa-solid fa-qrcode" style="color: var(--accent-cyan);"></i> <span data-i18n="modal_qr_title">Quét Mã QR Để Cài Đặt</span></h2>
+        </div>
+
+        <div class="qr-modal-body">
+          <p class="modal-intro-text" style="text-align: center;" data-i18n="modal_qr_desc">
+            Mở ứng dụng <strong>Camera</strong> trên iPhone hoặc iPad và hướng vào mã QR này để thêm phím tắt ngay:
+          </p>
+
+          <div class="qr-code-holder" id="qr-code-container">
+            <!-- QR rendered by qrcode.js -->
+          </div>
+
+          <p style="font-size: 12px; color: var(--text-muted);" data-i18n="modal_qr_hint">
+            Hỗ trợ iOS 15, 16, 17, 18+ trên iPhone & iPad
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-wrap">
+      <div class="footer-links">
+        <a href="#downloader" class="footer-link" data-i18n="nav_downloader">Tải Video</a>
+        <a href="#ios-shortcut" class="footer-link" data-i18n="nav_ios_shortcut">iOS Shortcut</a>
+        <a href="#guides" class="footer-link" data-i18n="nav_guides">Hướng Dẫn</a>
+        <a href="#features" class="footer-link" data-i18n="nav_features">Tính Năng</a>
+        <a href="#faq" class="footer-link" data-i18n="nav_faq">FAQ</a>
+      </div>
+      <p data-i18n="footer_copyright">© 2026 Scorix DL • High Performance Social Media Video Downloader Ecosystem. All rights reserved.</p>
     </footer>
   </div>
 

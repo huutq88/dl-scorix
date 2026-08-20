@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { spawn, exec, execFile } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -22,50 +22,84 @@ if (!fs.existsSync(DOWNLOADS_DIR)) {
   fs.mkdirSync(DOWNLOADS_DIR, { recursive: true });
 }
 
-// Find binary path silently
+// Find yt-dlp binary path safely
 let YTDLP_PATH = 'yt-dlp';
 if (fs.existsSync('/opt/homebrew/bin/yt-dlp')) {
   YTDLP_PATH = '/opt/homebrew/bin/yt-dlp';
+} else if (fs.existsSync('/usr/local/bin/yt-dlp')) {
+  YTDLP_PATH = '/usr/local/bin/yt-dlp';
+} else if (fs.existsSync('/usr/bin/yt-dlp')) {
+  YTDLP_PATH = '/usr/bin/yt-dlp';
 }
 
-const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const COOKIES_PATH = path.join(__dirname, 'cookies.txt');
+function getCookieArgs() {
+  if (fs.existsSync(COOKIES_PATH)) {
+    return ['--cookies', COOKIES_PATH];
+  }
+  return [];
+}
+
+const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
 
 // Helper: Detect Social Platform from URL
 function detectPlatform(url) {
+  if (!url || typeof url !== 'string') {
+    return { name: 'Social Media', key: 'generic', icon: 'video', color: '#6366f1', badgeClass: 'platform-generic' };
+  }
   const lowercaseUrl = url.toLowerCase();
   if (lowercaseUrl.includes('youtube.com') || lowercaseUrl.includes('youtu.be')) {
-    return { name: 'YouTube', key: 'youtube', icon: 'youtube', color: '#ff0000' };
+    return { name: 'YouTube', key: 'youtube', icon: 'youtube', color: '#ff0000', badgeClass: 'platform-youtube' };
   }
-  if (lowercaseUrl.includes('tiktok.com')) {
-    return { name: 'TikTok', key: 'tiktok', icon: 'tiktok', color: '#00f2fe' };
+  if (lowercaseUrl.includes('tiktok.com') || lowercaseUrl.includes('douyin.com')) {
+    return { name: 'TikTok', key: 'tiktok', icon: 'tiktok', color: '#00f2fe', badgeClass: 'platform-tiktok' };
   }
-  if (lowercaseUrl.includes('instagram.com')) {
-    return { name: 'Instagram', key: 'instagram', icon: 'instagram', color: '#e1306c' };
+  if (lowercaseUrl.includes('instagram.com') || lowercaseUrl.includes('instagr.am')) {
+    return { name: 'Instagram', key: 'instagram', icon: 'instagram', color: '#e1306c', badgeClass: 'platform-instagram' };
   }
-  if (lowercaseUrl.includes('facebook.com') || lowercaseUrl.includes('fb.watch') || lowercaseUrl.includes('fb.com')) {
-    return { name: 'Facebook', key: 'facebook', icon: 'facebook', color: '#1877f2' };
+  if (lowercaseUrl.includes('facebook.com') || lowercaseUrl.includes('fb.watch') || lowercaseUrl.includes('fb.com') || lowercaseUrl.includes('fb.me')) {
+    return { name: 'Facebook', key: 'facebook', icon: 'facebook', color: '#1877f2', badgeClass: 'platform-facebook' };
   }
-  return { name: 'Social Media', key: 'generic', icon: 'video', color: '#6366f1' };
+  if (lowercaseUrl.includes('twitter.com') || lowercaseUrl.includes('x.com')) {
+    return { name: 'Twitter / X', key: 'twitter', icon: 'x-twitter', color: '#1da1f2', badgeClass: 'platform-twitter' };
+  }
+  if (lowercaseUrl.includes('threads.net')) {
+    return { name: 'Threads', key: 'threads', icon: 'threads', color: '#ffffff', badgeClass: 'platform-threads' };
+  }
+  return { name: 'Social Media', key: 'generic', icon: 'video', color: '#6366f1', badgeClass: 'platform-generic' };
 }
 
 // Helper: Format duration (seconds to MM:SS or HH:MM:SS)
 function formatDuration(seconds) {
-  if (!seconds || isNaN(seconds)) return 'N/A';
+  if (!seconds || isNaN(seconds)) return '00:00';
   const hrs = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
   if (hrs > 0) {
     return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 // Helper: Extract clean HTTP/HTTPS URL from any input string (handles Share Sheet text)
 function extractUrl(input) {
   if (!input || typeof input !== 'string') return null;
-  const match = input.match(/https?:\/\/[^\s"']+/);
+  const match = input.match(/https?:\/\/[^\s"']+/i);
   return match ? match[0].trim() : null;
 }
+
+/**
+ * Healthcheck API
+ * GET /api/health
+ */
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Scorix DL API',
+    version: '2.5.0',
+    timestamp: new Date().toISOString()
+  });
+});
 
 /**
  * API: Fetch Video Info / Metadata
@@ -75,7 +109,7 @@ function extractUrl(input) {
 app.post('/api/info', (req, res) => {
   const cleanUrl = extractUrl(req.body.url);
   if (!cleanUrl) {
-    return res.status(400).json({ error: 'Invalid URL. Please enter a valid link starting with http:// or https://' });
+    return res.status(400).json({ error: 'Invalid URL. Please provide a valid link starting with http:// or https://' });
   }
 
   const platform = detectPlatform(cleanUrl);
@@ -85,33 +119,44 @@ app.post('/api/info', (req, res) => {
     '--no-warnings',
     '--no-playlist',
     '--user-agent', DEFAULT_USER_AGENT,
+    ...getCookieArgs(),
     cleanUrl
   ];
 
-  execFile(YTDLP_PATH, args, { maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
+  if (cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be')) {
+    args.splice(1, 0, '--extractor-args', 'youtube:player_client=android,web');
+  }
+
+  execFile(YTDLP_PATH, args, { maxBuffer: 25 * 1024 * 1024, timeout: 25000 }, (error, stdout, stderr) => {
     if (error) {
       console.error('yt-dlp info error:', stderr || error.message);
       return res.status(500).json({
-        error: 'Unable to fetch video details. Please verify the link or check if the video is private.'
+        error: 'Unable to fetch video details. Please verify the link or check if the video is set to private.'
       });
     }
 
     try {
       const data = JSON.parse(stdout);
       
+      let thumbnail = data.thumbnail || '';
+      if (!thumbnail && data.thumbnails && data.thumbnails.length > 0) {
+        thumbnail = data.thumbnails[data.thumbnails.length - 1].url;
+      }
+
       const responseData = {
-        title: data.title || 'Social Media Video',
-        thumbnail: data.thumbnail || (data.thumbnails && data.thumbnails.length > 0 ? data.thumbnails[data.thumbnails.length - 1].url : ''),
+        title: data.title || `${platform.name} Video`,
+        thumbnail: thumbnail,
         duration: formatDuration(data.duration),
+        durationSec: data.duration || 0,
         uploader: data.uploader || data.channel || data.creator || data.user || platform.name,
         platform: platform,
         url: cleanUrl,
         formats: [
-          { id: 'best', label: 'MP4 - Best Quality (HD/4K)', type: 'video' },
-          { id: '1080p', label: 'MP4 - Full HD (1080p)', type: 'video' },
-          { id: '720p', label: 'MP4 - HD (720p)', type: 'video' },
-          { id: '480p', label: 'MP4 - Standard (480p)', type: 'video' },
-          { id: 'mp3', label: 'MP3 - Audio Only (320kbps)', type: 'audio' }
+          { id: 'best', label: 'MP4 - HD (No Watermark)', quality: 'HD / Original', ext: 'mp4', type: 'video', isRecommended: true },
+          { id: '1080p', label: 'MP4 - Full HD (1080p)', quality: '1080p', ext: 'mp4', type: 'video' },
+          { id: '720p', label: 'MP4 - Fast HD (720p)', quality: '720p', ext: 'mp4', type: 'video' },
+          { id: '480p', label: 'MP4 - Standard (480p)', quality: '480p', ext: 'mp4', type: 'video' },
+          { id: 'mp3', label: 'MP3 - Audio Only (320kbps)', quality: 'HQ Audio', ext: 'mp3', type: 'audio' }
         ]
       };
 
@@ -128,7 +173,7 @@ app.post('/api/info', (req, res) => {
  * Body: { url: string, formatId: string }
  */
 app.post('/api/download', (req, res) => {
-  const { formatId } = req.body;
+  const { formatId = 'best' } = req.body;
   const cleanUrl = extractUrl(req.body.url);
   if (!cleanUrl) {
     return res.status(400).json({ error: 'Invalid URL provided.' });
@@ -153,7 +198,8 @@ app.post('/api/download', (req, res) => {
   const args = [
     '--no-playlist',
     '--no-warnings',
-    '--user-agent', DEFAULT_USER_AGENT
+    '--user-agent', DEFAULT_USER_AGENT,
+    ...getCookieArgs()
   ];
   if (isYouTube) {
     args.push('--extractor-args', 'youtube:player_client=android,web');
@@ -166,11 +212,11 @@ app.post('/api/download', (req, res) => {
   }
   args.push('-o', outputPattern, cleanUrl);
 
-  const process = execFile(YTDLP_PATH, args);
+  const processChild = execFile(YTDLP_PATH, args, { timeout: 60000 });
 
-  process.on('close', (code) => {
+  processChild.on('close', (code) => {
     if (code !== 0) {
-      return res.status(500).json({ error: 'Download failed. Please try again or select another quality format.' });
+      return res.status(500).json({ error: 'Download failed. Please try again or select another format.' });
     }
 
     const targetFile = path.join(DOWNLOADS_DIR, `${fileId}.${ext}`);
@@ -204,7 +250,7 @@ app.post('/api/download', (req, res) => {
 app.get('/api/file/:id', (req, res) => {
   const { id } = req.params;
   const ext = req.query.ext || 'mp4';
-  const customFilename = req.query.filename || `video_${id}.${ext}`;
+  const customFilename = req.query.filename || `ScorixDL_${id}.${ext}`;
   const filePath = path.join(DOWNLOADS_DIR, `${id}.${ext}`);
 
   if (!fs.existsSync(filePath)) {
@@ -232,7 +278,6 @@ app.get('/api/file/:id', (req, res) => {
  * GET or POST /api/shortcut or /shortcut?url=...&format=mp4
  */
 app.all(['/api/shortcut', '/shortcut'], (req, res) => {
-  // Extract un-truncated URL from raw query string if url contains '&' or query params
   let inputUrl = req.query.url || req.body.url;
   if (req.originalUrl && req.originalUrl.includes('url=')) {
     const rawQuery = req.originalUrl.substring(req.originalUrl.indexOf('url=') + 4);
@@ -259,7 +304,8 @@ app.all(['/api/shortcut', '/shortcut'], (req, res) => {
   const args = [
     '--no-playlist',
     '--no-warnings',
-    '--user-agent', DEFAULT_USER_AGENT
+    '--user-agent', DEFAULT_USER_AGENT,
+    ...getCookieArgs()
   ];
 
   if (isYouTube) {
@@ -270,7 +316,6 @@ app.all(['/api/shortcut', '/shortcut'], (req, res) => {
       args.push('-f', 'bestvideo+bestaudio/best', '--merge-output-format', 'mp4', '-o', outputPath, cleanUrl);
     }
   } else {
-    // Non-YouTube (TikTok, Instagram, Facebook)
     if (isAudio) {
       args.push('-x', '--audio-format', 'mp3', '-o', outputPath, cleanUrl);
     } else {
@@ -278,12 +323,14 @@ app.all(['/api/shortcut', '/shortcut'], (req, res) => {
     }
   }
 
-  const process = execFile(YTDLP_PATH, args);
+  const processChild = execFile(YTDLP_PATH, args, { timeout: 60000 });
 
   let processStderr = '';
-  process.stderr.on('data', (data) => { processStderr += data.toString(); });
+  if (processChild.stderr) {
+    processChild.stderr.on('data', (data) => { processStderr += data.toString(); });
+  }
 
-  process.on('close', (code) => {
+  processChild.on('close', (code) => {
     if (code !== 0 || !fs.existsSync(outputPath)) {
       console.error(`Shortcut download failed for URL: ${cleanUrl}, code: ${code}, stderr: ${processStderr}`);
       return res.status(500).json({ error: 'Shortcut download failed' });
@@ -291,7 +338,7 @@ app.all(['/api/shortcut', '/shortcut'], (req, res) => {
 
     const stat = fs.statSync(outputPath);
 
-    res.setHeader('Content-Disposition', `attachment; filename="SocialVideo_${fileId}.${ext}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="ScorixDL_${fileId}.${ext}"`);
     res.setHeader('Content-Type', isAudio ? 'audio/mpeg' : 'video/mp4');
     res.setHeader('Content-Length', stat.size);
 
@@ -306,7 +353,7 @@ app.all(['/api/shortcut', '/shortcut'], (req, res) => {
   });
 });
 
-// Periodic cleanup of download files older than 1 hour
+// Periodic cleanup of download files older than 30 minutes
 setInterval(() => {
   fs.readdir(DOWNLOADS_DIR, (err, files) => {
     if (err) return;
@@ -314,18 +361,31 @@ setInterval(() => {
     files.forEach(file => {
       const filePath = path.join(DOWNLOADS_DIR, file);
       fs.stat(filePath, (err, stat) => {
-        if (!err && now - stat.mtimeMs > 3600000) {
+        if (!err && now - stat.mtimeMs > 1800000) {
           fs.unlink(filePath, () => {});
         }
       });
     });
   });
-}, 1800000);
+}, 900000);
 
-app.listen(PORT, '0.0.0.0', () => {
+// Start server with port error resilience
+const serverInstance = app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
-  console.log(`🚀 MediaGrabPro Downloader Server active at:`);
-  console.log(`💻 Local: http://localhost:${PORT}`);
+  console.log(`🚀 Scorix DL Downloader Server active at:`);
+  console.log(`💻 Local Web: http://localhost:${PORT}`);
   console.log(`📱 iOS Shortcut API: http://localhost:${PORT}/api/shortcut?url=<VIDEO_URL>`);
   console.log(`====================================================`);
+});
+
+serverInstance.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    const fallbackPort = Number(PORT) + 1;
+    console.warn(`⚠️ Port ${PORT} is busy, retrying on fallback port ${fallbackPort}...`);
+    app.listen(fallbackPort, '0.0.0.0', () => {
+      console.log(`🚀 Scorix DL Server running on fallback port: http://localhost:${fallbackPort}`);
+    });
+  } else {
+    console.error('Server error:', err);
+  }
 });
